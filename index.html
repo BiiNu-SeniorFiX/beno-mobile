@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f10">
+<title>BeNo Mobile</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0f10;--card:#1a1a1c;--ink:#f2f2f2;--mut:#9a9aa1;--line:#2c2c30;--pri:#d8342a;
+--c0:#7a8a96;--c1:#d99a1c;--c2:#e8672a;--c3:#3b7bf0;--c4:#22a35a;--c5:#8b98a3;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 'IBM Plex Sans Thai',system-ui,'Noto Sans Thai',Tahoma,sans-serif}
+main{max-width:640px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 110px}
+header,.brand{display:flex;align-items:center;gap:12px}
+header{justify-content:space-between}
+h1{font-size:20px;font-weight:600;margin:0;line-height:1.2}
+small,.r4,.r3{color:var(--mut);font-size:14px}
+.lg{background:#fff;border-radius:10px;padding:4px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px}
+:focus-visible{outline:2px solid #ff7a6e;outline-offset:2px}
+.pri{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));padding:12px 20px;z-index:5}
+a{color:#ff7a6e}
+.sum{display:flex;gap:12px;margin:16px 0}
+.sum div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.sum span{color:var(--mut);font-size:13px}
+.sum b{display:block;font-size:18px;font-weight:600}
+#q{width:100%;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0}
+.chip{white-space:nowrap;font-size:14px;padding:6px 12px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--s);border-radius:10px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.pill{font-size:13px;padding:2px 10px;border-radius:999px;background:color-mix(in srgb,var(--s) 25%,transparent);white-space:nowrap}
+.r1,.r3{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.r2{font-weight:500}
+.nx{margin-top:8px;font-size:14px;border-color:var(--s)}
+.empty{color:var(--mut);text-align:center;padding:32px 0}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.ov[hidden]{display:none}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet h2{margin:0 0 12px;font-size:20px}
+.sheet h3{margin:20px 0 8px;font-size:16px}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:10px}
+label input,label select,label textarea{display:block;width:100%;margin-top:4px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:16px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cc{grid-template-columns:1fr 2fr}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;z-index:30;font-size:14px}
+#toast[hidden]{display:none}
+</style>
+</head>
+<body>
+<main>
+<header><div class="brand"><img class="lg" src="icon-192.png" alt="BeNo Mobile" width="44" height="44"><div><h1>BeNo Mobile</h1><small id="sync"></small></div></div><button onclick="$('#ab').hidden=false">ข้อมูลร้าน</button></header>
+<div class="sum"><div><span>รายได้เดือนนี้</span><i id="inc"></i></div><div><span>ค้างรับเงิน</span><i id="due"></i></div></div>
+<input id="q" type="search" placeholder="ค้นหาชื่อ เบอร์โทร รุ่น หรือเลขงาน" oninput="qs=this.value.trim().toLowerCase();render()">
+<div class="chips" id="chips"></div>
+<div id="list"></div>
+</main>
+<button class="pri fab" onclick="edit(null)">+ รับงานใหม่</button>
+<div id="toast" hidden></div>
+
+<div id="ov" class="ov" hidden onclick="if(event.target==this)closeS()">
+<form id="fm" class="sheet" onsubmit="return false">
+<h2 id="ft"></h2>
+<label>ชื่อลูกค้า<input name="name" required></label>
+<div class="two cc"><label>รหัสประเทศ<select name="cc"><option value="856">+856 ลาว</option><option value="66">+66 ไทย</option></select></label><label>เบอร์โทร / WhatsApp<input name="phone" inputmode="tel"></label></div>
+<label>รุ่นเครื่อง<input name="model" required></label>
+<label>IMEI / Serial<input name="imei"></label>
+<label>อาการเสีย<textarea name="problem" rows="2" required></textarea></label>
+<label>ช่างผู้ซ่อม<input name="tech"></label>
+<label>สกุลเงิน<select name="cur"><option value="LAK">LAK ₭ กีบ</option><option value="THB">THB ฿ บาท</option></select></label>
+<div class="two"><label>ค่าซ่อม<input name="price" type="number" min="0" inputmode="numeric"></label><label>มัดจำ<input name="dep" type="number" min="0" inputmode="numeric"></label></div>
+<label>สถานะ<select name="st" id="stsel"></select></label>
+<div class="acts"><button type="button" class="pri" onclick="sv()">บันทึก</button><button type="button" onclick="closeS()">ปิด</button></div>
+<div class="acts" id="ex"><button type="button" onclick="wa()">ส่งใบเสร็จ WhatsApp</button><button type="button" id="dl" onclick="del()">ลบงาน</button></div>
+</form>
+</div>
+
+<div id="ab" class="ov" hidden onclick="if(event.target==this)this.hidden=true"><div class="sheet">
+<img class="lg" src="logo.png" alt="BeNo Mobile" width="150">
+<h2>BeNo Mobile</h2>
+<p id="info" class="r4"></p>
+<h3>เชื่อมต่อ Google Sheet</h3>
+<label>Web app URL<input id="cu" placeholder="https://script.google.com/macros/s/.../exec"></label>
+<label>รหัสลับ (KEY)<input id="ck" type="password"></label>
+<div class="acts"><button class="pri" onclick="saveCfg()">บันทึกและซิงค์</button><button onclick="$('#ab').hidden=true">ปิด</button></div>
+</div></div>
+
+<script>
+const APP={name:'BeNo Mobile',dev:'BENO',ver:'9.0.1',tel:'02057805851',mail:'noyahoo4@gmail.com',fb:'BeNo'};
+const CUR={LAK:'₭',THB:'฿'};
+const ST=['รับเครื่อง','ตรวจเช็ค','รออะไหล่','กำลังซ่อม','ซ่อมเสร็จ','ส่งมอบแล้ว'];
+let jobs=[],seq=0,flt=-1,qs='',cur=null,cfg={url:'',key:''};
+const $=s=>document.querySelector(s);
+const fmt=(n,c)=>(CUR[c]||'')+(+n||0).toLocaleString('en-US');
+const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sync=t=>$('#sync').textContent=t;
+function toast(t){const e=$('#toast');e.textContent=t;e.hidden=false;setTimeout(()=>e.hidden=true,2500)}
+const norm=j=>({...j,phone:String(j.phone||''),cc:String(j.cc||'856'),price:+j.price||0,dep:+j.dep||0,st:+j.st||0,t:+j.t||0,dt:+j.dt||0,cur:j.cur=='THB'?'THB':'LAK'});
+function load(){
+ try{const d=JSON.parse(localStorage.getItem('rj')||'null');if(d&&d.jobs){jobs=d.jobs.map(norm);seq=d.seq||0}}catch(e){}
+ try{cfg=JSON.parse(localStorage.getItem('rc')||'null')||cfg}catch(e){}
+}
+function save(){try{localStorage.setItem('rj',JSON.stringify({jobs,seq}))}catch(e){}}
+async function api(b){
+ const r=b?await fetch(cfg.url,{method:'POST',body:JSON.stringify({...b,key:cfg.key})}):await fetch(cfg.url+'?key='+encodeURIComponent(cfg.key));
+ const d=await r.json();if(!d.ok)throw 0;return d;
+}
+async function pull(){
+ if(!cfg.url)return sync('ยังไม่ได้เชื่อมต่อ Google Sheet');
+ sync('กำลังซิงค์…');
+ try{
+  const d=await api();
+  if(!d.jobs.length&&jobs.length)for(const j of jobs)await api({op:'put',job:j});
+  else{jobs=d.jobs.map(norm);seq=Math.max(0,...jobs.map(j=>parseInt(String(j.id).slice(2))||0));save();render()}
+  sync('เชื่อมต่อ Google Sheet แล้ว');
+ }catch(e){sync('ซิงค์ไม่สำเร็จ ใช้ข้อมูลในเครื่อง')}
+}
+function push(b){if(cfg.url)api(b).then(()=>sync('บันทึกลง Google Sheet แล้ว'),()=>sync('บันทึกลงชีตไม่สำเร็จ'))}
+function saveCfg(){
+ cfg={url:$('#cu').value.trim(),key:$('#ck').value.trim()};
+ try{localStorage.setItem('rc',JSON.stringify(cfg))}catch(e){}
+ $('#ab').hidden=true;pull();
+}
+function render(){
+ const m=new Date().getMonth(),by=fn=>Object.keys(CUR).map(c=>`<b>${fmt(jobs.filter(j=>j.cur==c).reduce((a,j)=>a+fn(j),0),c)}</b>`).join('');
+ $('#inc').innerHTML=by(j=>j.st==5&&new Date(j.dt).getMonth()==m?j.price:0);
+ $('#due').innerHTML=by(j=>j.st<5?Math.max(0,j.price-j.dep):0);
+ $('#chips').innerHTML=['ทั้งหมด',...ST].map((s,i)=>{const k=i-1,n=k<0?jobs.length:jobs.filter(j=>j.st==k).length;
+  return `<button class="chip${flt==k?' on':''}" onclick="flt=${k};render()">${s} ${n}</button>`}).join('');
+ const L=jobs.filter(j=>(flt<0||j.st==flt)&&(!qs||[j.id,j.name,j.phone,j.model].join(' ').toLowerCase().includes(qs)))
+  .sort((a,b)=>(a.st==5)-(b.st==5)||b.t-a.t);
+ $('#list').innerHTML=L.length?L.map(j=>`<article class="card" style="--s:var(--c${j.st})" onclick="edit('${j.id}')">
+<div class="r1"><b>${esc(j.model)}</b><span class="pill">${ST[j.st]}</span></div>
+<div class="r2">${esc(j.name)}</div><div class="r4">${esc(j.problem)}</div>
+<div class="r3"><span>${j.id}</span><span>${fmt(j.price,j.cur)}${j.st<5&&j.price>j.dep?' ค้าง '+fmt(j.price-j.dep,j.cur):''}</span></div>
+${j.st<5?`<button class="nx" onclick="event.stopPropagation();adv('${j.id}')">ขยับเป็น ${ST[j.st+1]}</button>`:''}</article>`).join('')
+  :'<p class="empty">ยังไม่มีงานในหมวดนี้ กด “รับงานใหม่” เพื่อเริ่มต้น</p>';
+}
+function adv(id){const j=jobs.find(x=>x.id==id);j.st++;if(j.st==5){j.dt=Date.now();j.dep=j.price}save();render();push({op:'put',job:j})}
+function edit(id){
+ cur=id;const f=$('#fm'),j=jobs.find(x=>x.id==id)||{name:'',cc:'856',phone:'',model:'',imei:'',problem:'',tech:'',cur:'LAK',price:'',dep:'',st:0};
+ $('#ft').textContent=id?'งาน '+id:'รับงานใหม่';
+ for(const k of['name','cc','phone','model','imei','problem','tech','cur','price','dep','st'])f.elements[k].value=j[k];
+ $('#ex').hidden=!id;$('#dl').textContent='ลบงาน';$('#ov').hidden=false;
+}
+function closeS(){$('#ov').hidden=true}
+function sv(){
+ const f=$('#fm');if(!f.reportValidity())return;
+ const d=Object.fromEntries(new FormData(f));d.price=+d.price||0;d.dep=+d.dep||0;d.st=+d.st;
+ let j=jobs.find(x=>x.id==cur);
+ if(j){if(d.st==5&&j.st!=5)j.dt=Date.now();Object.assign(j,d)}
+ else{seq++;j={...d,id:'R-'+String(seq).padStart(4,'0'),t:Date.now(),dt:d.st==5?Date.now():0};jobs.push(j)}
+ save();closeS();render();push({op:'put',job:j});
+}
+function del(){
+ const b=$('#dl');
+ if(b.textContent!='ลบงาน'){jobs=jobs.filter(x=>x.id!=cur);save();closeS();render();push({op:'del',id:cur});return}
+ b.textContent='แตะอีกครั้งเพื่อยืนยันการลบ';
+}
+function wa(){
+ const d=Object.fromEntries(new FormData($('#fm'))),b=Math.max(0,d.price-d.dep);
+ let p=d.phone.replace(/\D/g,'');
+ if(!p)return toast('กรอกเบอร์โทรลูกค้าก่อน');
+ if(!p.startsWith(d.cc))p=d.cc+p.replace(/^0+/,'');
+ const m=`🧾 ใบเสร็จ ${APP.name}\nเลขงาน: ${cur}\nวันที่: ${new Date().toLocaleDateString('th-TH')}\nลูกค้า: ${d.name}\nเครื่อง: ${d.model}\nงานซ่อม: ${d.problem}\nค่าซ่อม: ${fmt(d.price,d.cur)} ${d.cur}\nชำระแล้ว: ${fmt(d.dep,d.cur)} ${d.cur}\nคงเหลือ: ${b?fmt(b,d.cur)+' '+d.cur:'ชำระครบแล้ว'}\n\nติดต่อ: ${APP.tel}\nอีเมล: ${APP.mail}\nFacebook: ${APP.fb}\nขอบคุณที่ใช้บริการ`;
+ window.open('https://wa.me/'+p+'?text='+encodeURIComponent(m),'_blank');
+}
+$('#stsel').innerHTML=ST.map((s,i)=>`<option value="${i}">${s}</option>`).join('');
+$('#info').innerHTML=`เวอร์ชัน ${APP.ver}<br>ผู้พัฒนา: ${APP.dev}<br>โทร: <a href="tel:${APP.tel}">${APP.tel}</a><br>อีเมล: <a href="mailto:${APP.mail}">${APP.mail}</a><br>Facebook: ${APP.fb}`;
+load();$('#cu').value=cfg.url||'';$('#ck').value=cfg.key||'';render();pull();
+</script>
+</body>
+</html>
